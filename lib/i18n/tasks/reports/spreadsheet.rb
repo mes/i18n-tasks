@@ -17,7 +17,50 @@ module I18n::Tasks::Reports
       $stderr.puts Term::ANSIColor.green "Saved to #{path}"
     end
 
+    def frontend_report(path, opts)
+      target_locale = opts[:locales].present? ?  opts[:locales].first : 'en'
+      # TODO: make the frontend reference language a parameter, now using :it
+      base_locale = 'it'
+
+      path = path.presence || "tmp/i18n-report.#{target_locale}.xlsx"
+      p = Axlsx::Package.new
+
+      tree = task.missing_keys({locales: [target_locale], base_locale: base_locale})
+      if tree.keys.any?
+        $stderr.puts "#{tree.keys.count} missing keys"
+        add_frontend_sheet p.workbook, tree
+        p.use_shared_strings = true
+        FileUtils.mkpath(File.dirname(path))
+        p.serialize(path)
+        $stderr.puts Term::ANSIColor.green "Report saved to #{path}"
+      else
+        $stderr.puts Term::ANSIColor.green "No missing keys"
+      end
+    end
+
     private
+
+    def add_frontend_sheet(wb, tree)
+      wb.styles do |s|
+        type_cell = s.add_style :alignment => {:horizontal => :center}
+        locale_cell  = s.add_style :alignment => {:horizontal => :center}
+        regular_style = s.add_style
+        wb.add_worksheet(name: missing_title(tree)) { |sheet|
+          sheet.page_setup.fit_to :width => 1
+          sheet.add_row [I18n.t('i18n_tasks.common.key'), 'English', 'Translation']
+
+          style_header sheet
+          tree.keys do |key, node|
+            locale, type = node.root.data[:locale], node.data[:type]
+
+            if type == :missing_diff
+              sheet.add_row [key, task.t(key)],
+              styles: [type_cell, regular_style, regular_style]
+            end
+          end
+        }
+      end
+    end
 
     def add_missing_sheet(wb)
       tree = task.missing_keys

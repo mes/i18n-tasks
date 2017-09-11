@@ -18,7 +18,7 @@ module I18n::Tasks
             log_stderr Term::ANSIColor.red Term::ANSIColor.bold message
             exit 1
           end
-          spreadsheet_report.save_report opt[:path], opt.except(:path)
+          spreadsheet_report.frontend_report opt[:path], opt.except(:path)
         end
       end
     end
