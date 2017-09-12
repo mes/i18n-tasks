@@ -18,6 +18,23 @@ module I18n::Tasks
             log_stderr Term::ANSIColor.red Term::ANSIColor.bold message
             exit 1
           end
+          spreadsheet_report.save_report opt[:path], opt.except(:path)
+        end
+
+        cmd :frontend_report,
+            args: '[locale...]',
+            desc: proc { I18n.t('i18n_tasks.cmd.desc.frontend_report') },
+            opt:  [cmd_opt(:locales),
+                   {short: :p, long: :path=, desc: 'Destination path', conf: {default: 'tmp/i18n-report.xlsx'}}]
+
+        def frontend_report(opt = {})
+          begin
+            require 'axlsx'
+          rescue LoadError
+            message = %Q(For spreadsheet report please add axlsx gem to Gemfile:\ngem 'axlsx', '~> 2.0')
+            log_stderr Term::ANSIColor.red Term::ANSIColor.bold message
+            exit 1
+          end
           spreadsheet_report.frontend_report opt[:path], opt.except(:path)
         end
       end

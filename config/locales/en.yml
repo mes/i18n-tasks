@@ -68,6 +68,7 @@ en:
         gem_path: show path to the gem
         irb: start REPL session within i18n-tasks context
         xlsx_report: save missing and unused translations to an Excel file
+        frontend_report: save missing frontend translations to an Excel file
       args:
         default_text: 'Default: %{value}'
         default_all: 'Default: all'
